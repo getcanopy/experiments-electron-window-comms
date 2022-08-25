@@ -25,51 +25,60 @@ const createMainWindow = () => {
     },
     show: false,
   });
-  // mainWindow.show()
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-  // and load the index.html of the app.
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.webContents.openDevTools();
   })
 
 
-const handleMessage = (client: MessagePortMain) => {
-  return (message: MessageEvent) => {
-    console.log(message);
-    const { data } = message;
-    const { topic, body } = data as OurMessage
-    const response = { ...body, topic: `${topic}-response` }
-    console.log('received:', topic, body)
-    createChildWindow()
+  const handleMessage = (client: MessagePortMain) => {
+    return (message: MessageEvent) => {
+      console.log(message);
+      const { data } = message;
+      const { topic, body } = data as OurMessage
+      const response = { ...body, topic: `${topic}-response` }
+      console.log('received:', topic, body)
+      createChildView()
 
-    client.postMessage(response)
+      client.postMessage(response)
+
+    }
+  }
+
+  const createChildView = (): void => {
+    // Create the browser window.
+    const childView = new BrowserView()
+    childView.setBounds({ x: 1920 / 2 - 250, y: 1080 / 2 - 250, width: 250, height: 250 })
+    childView.webContents.loadURL("https://www.google.com");
+    mainWindow.addBrowserView(childView)
+    // mainWindow.setBrowserView(childView)
 
   }
-}
 
-const createChildWindow = (): void => {
-  // Create the browser window.
-  console.log('POPUP');
-  // we should create a new BrowserWindow for the popup
-  // and then, once the popup can be shown, move the BrowserView to the main window
-  const childView = new BrowserView({
-    webPreferences: {
-      preload: PRELOAD_PATH,
-    },
-  });
 
-  childView.webContents.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-  childView.setBounds({ x: 200, y: 200, width: 300, height: 300 });
-  // popupWindow.once('ready-to-show', popupWindow.show)
-  mainWindow.addBrowserView(childView);
-  childView.webContents.openDevTools();
-  console.log("POPUP 1");
-}
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+  const createChildWindow = (): void => {
+    // Create the browser window.
+    const childWindow = new BrowserWindow({
+      height: 108,
+      width: 192,
+      movable: false,
+      resizable: false,
+      show: false,
+      parent: mainWindow,
+      webPreferences: {
+        preload: PRELOAD_PATH,
+      },
+    });
+    // mainWindow.show()
+    childWindow.loadURL("https://www.google.com");
+    childWindow.once('ready-to-show', () => {
+      console.log('shown')
+      const view = childWindow.getBrowserView()!
+      mainWindow.addBrowserView(view)
+    })
+    console.log({ childWindow })
+  }
 }
 app.on('ready', createMainWindow);
 
