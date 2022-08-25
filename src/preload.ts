@@ -5,21 +5,43 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 const setupComms = () => {
-
   console.log('setting up communications')
-  const { port1: server, port2: client } = new MessageChannel()
+  const id = Math.random() * 1000
+  const childPorts = new Map<number, MessagePort>()
+  const portPromise = new Promise<MessagePort>((resolve, reject) => {
 
-  ipcRenderer.postMessage('setup-comms', null, [server])
+    ipcRenderer.on('setup-comms', (event) => {
+      console.log(id, 'setup-comms')
+      const server = event.ports[0]
+      resolve(server)
+    })
+  })
 
   const communicator = {
-    message: (msg) => {
-      client.postMessage({ topic: 'message', body: msg })
+    message: async (msg) => {
+      console.log(id, 'send message: wait for port', msg)
+      const server = await portPromise
+      console.log(id, 'sending message', msg)
+      server.postMessage({ topic: 'message', body: msg, from: id })
     },
-    onMessage: (callback) => {
-      client.start()
-      client.addEventListener('message', (event) => {
-        callback(event.data, event.ports[0])
+    onMessage: async (callback) => {
+      console.log(id, 'receiving: wait for port')
+      const server = await portPromise
+      console.log(id, 'onMessage: got port')
+      server.addEventListener('message', (event) => {
+        console.log(id, 'onMessage: got message', event)
+        if (event.ports.length > 0) {
+          console.log(id, 'onMessage: got port')
+          const port = event.ports[0]
+          port.start()
+          const {port1, port2} = new MessageChannel()
+          port2.addEventListener('message', console.log)
+          port2.start()
+          port.postMessage({ topic: 'talk-to-child', body: event.data, from: id },[port1])
+        }
+        callback(event.data)
       })
+      server.start()
     },
   }
 
