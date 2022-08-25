@@ -3,9 +3,10 @@ import { h, render } from 'preact';
 import htm from 'htm';
 import {v4 as uuidv4} from 'uuid'
 import { OurMessage } from './OurMessage';
+import {Communicator} from './Communicator'
 
 const html = htm.bind(h);
-declare const comms: any;
+declare const comms: Communicator;
 
 const createBrowserView = () => {
   comms.message({topic:'create-child',body:{
@@ -21,9 +22,9 @@ const handleMessage = ({topic, body}:OurMessage) => {
   console.log(topic, body)
 }
 
+comms.onMessage(handleMessage)
+
 const App =  () => {
-  console.log(comms)
-  comms.onMessage(handleMessage)
   return html`
   <h1>This thing can probably control BrowserViews</h1>
   <p>Now isn't that exciting.</p>

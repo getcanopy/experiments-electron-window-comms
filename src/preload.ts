@@ -4,10 +4,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contextBridge, ipcRenderer } = require('electron')
 
-// const debugLog = ({data}) => {
-//   console.log(data)
-// }
-
 const setupComms = () => {
 
   console.log('setting up communications')
@@ -22,7 +18,7 @@ const setupComms = () => {
     onMessage: (callback) => {
       client.start()
       client.addEventListener('message', (event) => {
-        callback(event.data)
+        callback(event.data, event.ports[0])
       })
     },
   }
