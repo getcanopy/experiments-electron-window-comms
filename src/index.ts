@@ -24,6 +24,7 @@ const createMainWindow = () => {
     serverPort.on('message', handleMessage(serverPort)).start()
     mainWindow.show();
     mainWindow.webContents.openDevTools();
+    // this is temporary to fix a race condition.
     setTimeout(() => {
     mainWindow.webContents.postMessage('setup-comms', null, [windowPort])
     }, 1000)
@@ -38,6 +39,7 @@ const createMainWindow = () => {
       const response = { ...body, topic: `${topic}-response` }
       console.log('received:', topic, body)
       createChildView().then(childChannel => {
+        // this is temporary to fix a race condition.
         setTimeout(() => {
         client.postMessage(response, [childChannel])
         }, 1000)
@@ -67,30 +69,6 @@ const createMainWindow = () => {
 
       childView.webContents.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
     })
-  }
-
-
-  const createChildWindow = (): void => {
-    // Create the browser window.
-    const childWindow = new BrowserWindow({
-      height: 108,
-      width: 192,
-      movable: false,
-      resizable: false,
-      show: false,
-      parent: mainWindow,
-      webPreferences: {
-        preload: PRELOAD_PATH,
-      },
-    });
-    // mainWindow.show()
-    childWindow.loadURL("https://www.google.com");
-    childWindow.once('ready-to-show', () => {
-      console.log('shown')
-      const view = childWindow.getBrowserView()!
-      mainWindow.addBrowserView(view)
-    })
-    console.log({ childWindow })
   }
 }
 app.on('ready', createMainWindow);

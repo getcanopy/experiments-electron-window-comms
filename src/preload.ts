@@ -37,7 +37,7 @@ const setupComms = () => {
           const {port1, port2} = new MessageChannel()
           port2.addEventListener('message', console.log)
           port2.start()
-          port.postMessage({ topic: 'talk-to-child', body: event.data, from: id },[port1])
+          port.postMessage({ topic: 'talk-to-child', body: {originalMessage: event.data}, from: id },[port1])
         }
         callback(event.data)
       })
