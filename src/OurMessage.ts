@@ -1,4 +1,4 @@
-export type OurMessage = {
+export interface OurMessage{
   topic: 'message' | 'create-child' | 'destroy-child';
   body: any;
 };
