@@ -1,15 +1,35 @@
 import './index.css';
 import { h, render } from 'preact';
 import htm from 'htm';
-const html = htm.bind(h);
+import {v4 as uuidv4} from 'uuid'
+import { OurMessage } from './OurMessage';
 
-function App (props) {
+const html = htm.bind(h);
+declare const comms: any;
+
+const createBrowserView = () => {
+  comms.message({topic:'create-child',body:{
+    id: uuidv4(),
+  }})
+}
+
+const destroyBrowserView = () => {
+  console.log("DESTROYING BROWSERVIEW. Not really. Just pretending.");
+}
+
+const handleMessage = ({topic, body}:OurMessage) => {
+  console.log(topic, body)
+}
+
+const App =  () => {
+  console.log(comms)
+  comms.onMessage(handleMessage)
   return html`
   <h1>This thing can probably control BrowserViews</h1>
   <p>Now isn't that exciting.</p>
   <div id="control-browser-views">
-    <button id="create-browser-view">Create BrowserView</button>
-    <button id="destroy-browser-view">Destroy BrowserViews</button>
+    <button onClick=${createBrowserView}>Create BrowserView</button>
+    <button onClick=${destroyBrowserView}>Destroy BrowserViews</button>
   </div>`
 }
 
