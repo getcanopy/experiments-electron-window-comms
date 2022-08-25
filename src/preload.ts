@@ -1,17 +1,33 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
-const {contextBridge, ipcRenderer} = require('electron')
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contextBridge, ipcRenderer } = require('electron')
+
+// const debugLog = ({data}) => {
+//   console.log(data)
+// }
+
 const setupComms = () => {
+
   console.log('setting up communications')
-  const {port1:server, port2:client} = new MessageChannel()
+  const { port1: server, port2: client } = new MessageChannel()
+
+  // client.addEventListener('message', debugLog)
   ipcRenderer.postMessage('setup-comms', null, [server])
-  contextBridge.exposeInMainWorld('comms', {
+
+  const communicator = {
     message: (msg) => {
-      client.postMessage('message', msg)
+      client.postMessage( msg)
     },
     onMessage: (callback) => {
-      client.addEventListener('message', callback)
+      client.start()
+      client.addEventListener('message', (event) => {
+        callback(event.data)
+      })
     },
-  })
+  }
+
+  contextBridge.exposeInMainWorld('comms', communicator)
 }
 setupComms()
