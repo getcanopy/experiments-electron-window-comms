@@ -5,12 +5,6 @@ import { app, BrowserWindow } from 'electron';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-  // eslint-disable-line global-require
-  app.quit();
-}
-
 const createWindow = (): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -26,7 +20,23 @@ const createWindow = (): void => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
-};
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log("well done");
+    createPopup();
+  })
+}
+
+const createPopup = (): void => {
+  // Create the browser window.
+  const popupWindow = new BrowserWindow({
+    height: 1080/2,
+    width: 1920/2,
+    webPreferences: {
+      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+    },
+  });
+  popupWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
