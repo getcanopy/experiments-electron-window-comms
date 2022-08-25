@@ -2,7 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 const {contextBridge} = require('electron')
 contextBridge.exposeInMainWorld('preloadTest', {
-  test: () => {
-    return 'preloadTest'
+  boring_function: () => {
+    return 'preloadTestTS'
   }
 })
