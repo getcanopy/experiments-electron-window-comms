@@ -13,12 +13,11 @@ const setupComms = () => {
   console.log('setting up communications')
   const { port1: server, port2: client } = new MessageChannel()
 
-  // client.addEventListener('message', debugLog)
   ipcRenderer.postMessage('setup-comms', null, [server])
 
   const communicator = {
     message: (msg) => {
-      client.postMessage( msg)
+      client.postMessage({ topic: 'message', body: msg })
     },
     onMessage: (callback) => {
       client.start()

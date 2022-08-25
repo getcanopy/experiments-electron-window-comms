@@ -8,27 +8,33 @@ const PRELOAD_PATH = MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY;
 
 const ports: MessagePortMain[] = []
 
-ipcMain.on('setup-comms', (event: IpcMainEvent) => {
-  console.log('SETUP COMMS');
-  const client = event.ports[0]
-  client.postMessage('Hello from the main process!')
+type OurMessage = {
+  topic: 'message' | 'create-child' | 'destroy-child'
+  body: any
+}
 
-  client.on('message', ({data:msg}) => {
-    console.log('received:', msg)
-    client.postMessage(`Echo: ${msg}`)
+ipcMain.on('setup-comms', (event: IpcMainEvent) => {
+  const client = event.ports[0]
+  client.postMessage({ topic: 'init', body: "INITIATING COMMUNICATIONS PROTOCOL" })
+
+  client.on('message', ({ data }) => {
+    const { topic, body } = data as OurMessage
+    console.log('received:', topic, body)
+    client.postMessage(`Echo topic: ${topic} body: ${JSON.stringify(body, null, 2)}`)
+
   }).start()
 
   ports.push(client)
 })
 
-const createWindow = (): void => {
+
+const createMainWindow = (): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     height: 1080,
     width: 1920,
     webPreferences: {
       preload: PRELOAD_PATH,
-      contextIsolation: true,
     },
     show: false,
   });
@@ -38,11 +44,10 @@ const createWindow = (): void => {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.webContents.openDevTools();
-    createPopup(mainWindow)
   })
 }
 
-const createPopup = (mainWindow): void => {
+const createChildWindow = (mainWindow): void => {
   // Create the browser window.
   console.log('POPUP');
   // we should create a new BrowserWindow for the popup
@@ -65,7 +70,7 @@ const createPopup = (mainWindow): void => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', createMainWindow);
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -80,7 +85,7 @@ app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createMainWindow();
   }
 });
 
