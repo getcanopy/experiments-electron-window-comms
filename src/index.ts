@@ -21,6 +21,7 @@ const createMainWindow = () => {
   mainWindow.webContents.on('paint', (event, dirty, image) => {
     console.log('paint', dirty, image);
   })
+  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
   mainWindow.once('ready-to-show', () => {
     const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
     serverPort.on('message', handleMessage(serverPort)).start()
@@ -28,7 +29,7 @@ const createMainWindow = () => {
     mainWindow.webContents.openDevTools();
     // this is temporary to fix a race condition.
     setTimeout(() => {
-    mainWindow.webContents.postMessage('setup-comms', null, [windowPort])
+      mainWindow.webContents.postMessage('setup-comms', null, [windowPort])
     }, 1000)
   })
 
@@ -43,13 +44,13 @@ const createMainWindow = () => {
       createChildView().then(childChannel => {
         // this is temporary to fix a race condition.
         setTimeout(() => {
-        client.postMessage(response, [childChannel])
+          client.postMessage(response, [childChannel])
         }, 1000)
       })
     }
   }
 
-  const createChildView = async ():Promise<MessagePortMain> =>  {
+  const createChildView = async (): Promise<MessagePortMain> => {
     // Create the browser window.
     return new Promise((resolve, reject) => {
       const childView = new BrowserView(
