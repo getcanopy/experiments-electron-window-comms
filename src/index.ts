@@ -18,7 +18,9 @@ const createMainWindow = () => {
     },
     show: false,
   });
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+  mainWindow.webContents.on('paint', (event, dirty, image) => {
+    console.log('paint', dirty, image);
+  })
   mainWindow.once('ready-to-show', () => {
     const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
     serverPort.on('message', handleMessage(serverPort)).start()
