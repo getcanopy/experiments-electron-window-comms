@@ -18,18 +18,16 @@ const createMainWindow = () => {
     },
     show: false,
   });
-  mainWindow.webContents.on('paint', (event, dirty, image) => {
-    console.log('paint', dirty, image);
-  })
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
   mainWindow.once('ready-to-show', () => {
     const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
+    const {port1:serverPaintPort, port2:preloadPaintPort} = new MessageChannelMain()
     serverPort.on('message', handleMessage(serverPort)).start()
     mainWindow.show();
     mainWindow.webContents.openDevTools();
     // this is temporary to fix a race condition.
     setTimeout(() => {
-      mainWindow.webContents.postMessage('setup-comms', null, [windowPort])
+      mainWindow.webContents.postMessage('setup-comms', null, [windowPort,preloadPaintPort])
     }, 1000)
   })
 
