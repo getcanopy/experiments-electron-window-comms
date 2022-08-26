@@ -15,6 +15,7 @@ const createMainWindow = () => {
     width: 1920,
     webPreferences: {
       preload: PRELOAD_PATH,
+      offscreen: true,
     },
     show: false,
   });
@@ -25,6 +26,10 @@ const createMainWindow = () => {
     serverPort.on('message', handleMessage(serverPort)).start()
     mainWindow.show();
     mainWindow.webContents.openDevTools();
+    mainWindow.webContents.on('paint', (event, dirty, image) => {
+      console.log('paint', dirty, image)
+      // preloadPaintPort.postMessage({topic: 'paint', body: {dirty, image}})
+    })
     // this is temporary to fix a race condition.
     setTimeout(() => {
       mainWindow.webContents.postMessage('setup-comms', null, [windowPort,preloadPaintPort])
