@@ -15,7 +15,7 @@ const createMainWindow = () => {
     width: 1920,
     webPreferences: {
       preload: PRELOAD_PATH,
-      offscreen: true,
+      // offscreen: true,
     },
     show: false,
   });
