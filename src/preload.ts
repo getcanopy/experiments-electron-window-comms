@@ -55,6 +55,7 @@ const setupComms = () => {
 
     // This actually just asks the server to create a MessagePort to the browser view.
     createChild: async ({ url, name }) => {
+      console.log("creating child", { url, name })
       const server = await portPromise
       server.postMessage({
         topic: "create-child",
