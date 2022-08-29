@@ -39,10 +39,14 @@ const setupComms = () => {
           console.log(id, "onMessage: got child port!")
           const port = event.ports[0]
           port.start()
-          const {port1, port2} = new MessageChannel()
-          port2.addEventListener("message", console.log)
-          port2.start()
-          port.postMessage({ topic: "talk-to-child", body: {originalMessage: event.data}, from: id },[port1])
+          const {port1:toChildPort, port2:fromChildPort} = new MessageChannel()
+
+          fromChildPort.addEventListener("message", (event) => {
+            console.log(id, "onMessage: got child message", event)
+          })
+
+          fromChildPort.start()
+          port.postMessage({ topic: "talk-to-child", body: {originalMessage: event.data}, from: id },[toChildPort])
         }
         callback(event.data)
       })
