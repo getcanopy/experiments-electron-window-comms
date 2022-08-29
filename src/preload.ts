@@ -17,15 +17,14 @@ const setupComms = () => {
       resolve(server)
     })
   })
-
   const communicator = {
-
     // This actually just asks the server to create a MessagePort to the browser view.
-    message: async (msg) => {
+    askServerForNewBrowserView: async (msg) => {
       console.log(id, "send message: wait for port", msg)
       const server = await portPromise
       console.log(id, "sending message", msg)
-      server.postMessage({ topic: "message", body: msg, from: id })
+      // it doesn't matter what message we put here
+      server.postMessage({from: id })
     },
     onMessage: async (callback) => {
       console.log(id, "receiving: wait for port")
@@ -58,5 +57,6 @@ const setupComms = () => {
   }
 
   contextBridge.exposeInMainWorld("comms", communicator)
+  contextBridge.exposeInMainWorld("communicator", communicator)
 }
 setupComms()

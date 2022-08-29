@@ -8,7 +8,7 @@ const html = htm.bind(h)
 declare const comms: Communicator
 
 const createChildView = () => {
-  return comms.message({topic: "create-child"})
+  return comms.askServerForNewBrowserView({topic: "create-child"})
 }
 
 const destroyBrowserView = () => {
