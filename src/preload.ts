@@ -15,8 +15,38 @@ const setupComms = () => {
   })
 
   const children = new Map<string, MessagePort>()
+
   const addChild = (childName: string, childPort: MessagePort) => {
+    childPort.addEventListener("message", (event) => {
+      const {data} = event
+      console.log(`child ${childName} sent message`, data)
+    })
     children.set(childName, childPort)
+  }
+  const processMessage = (event) => {
+    console.log("got message", event)
+    const { data } = event
+    const { topic, body } = data
+    const { name } = body
+    const port = event.ports[0]
+    console.log(`recieved message with topic: ${topic}`)
+    switch (topic) {
+      case "add-child":
+        console.log("adding child", name)
+        if (!port) {
+          throw new Error("no port in add-child message")
+        }
+        addChild(name, port)
+        break
+      case "set-parent":
+        port.addEventListener("message", (event) => {
+          console.log("got message from parent", event.data)
+        })
+        break
+      default:
+        console.log("got message", event.data)
+        break
+    }
   }
   const communicator = {
 
@@ -31,32 +61,11 @@ const setupComms = () => {
         }
       })
     },
-    onMessage: async (callback) => {
+    onMessage: async () => {
       const server = await portPromise
       // Listen to the server port for a message containing the MessagePort to the browser view.
       // Yes, this adds a listener for every message. Which is bad.
-      server.addEventListener("message", (event) => {
-        console.log("got message", event)
-        const { data } = event
-        const { topic, body } = data
-        const { name } = body
-        const port = event.ports[0]
-        switch (topic) {
-          case "add-child":
-            console.log("adding child", name)
-            addChild(name, port)
-            break
-          case "set-parent":
-            port.addEventListener("message", (event) => {
-              console.log("got message from parent", event.data)
-            })
-            break
-          default:
-            console.log("got message", event.data)
-            break
-        }
-        callback(body)
-      })
+      server.addEventListener("message", processMessage)
       server.start()
     },
   }
