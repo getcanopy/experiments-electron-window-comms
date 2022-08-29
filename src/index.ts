@@ -19,7 +19,6 @@ const createWindow = ({url=MAIN_WINDOW_WEBPACK_ENTRY, parentPort=null}={}) => {
     })
   window.loadURL(url)
   window.once("ready-to-show", () => {
-    console.log("ready-to-show")
     const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
     serverPort.on("message", handleMessage(serverPort)).start()
     window.show()
@@ -38,11 +37,11 @@ const createWindow = ({url=MAIN_WINDOW_WEBPACK_ENTRY, parentPort=null}={}) => {
     return (message: MessageEvent) => {
       console.log({recieved:message})
       const { data } = message
-      const { topic, body,url } = data as OurMessage
+      const { topic, body} = data as OurMessage
       if (topic === "create-child") {
-        const {childName = "child"} = body
+        const {name = "child", url} = body
         createWindow({url}).then(childChannel => {
-            client.postMessage({topic:"add-child", childName}, [childChannel])
+            client.postMessage({topic:"add-child", childName: name}, [childChannel])
         })
         return
     }

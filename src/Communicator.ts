@@ -1,5 +1,5 @@
 import {OurMessage} from "./OurMessage"
 export interface Communicator {
-  message: (message: OurMessage) => Promise<void>;
+  createChild({name, url}): Promise<MessagePort>
   onMessage: (callback: (message:OurMessage) => void) => Promise<void>;
 }
