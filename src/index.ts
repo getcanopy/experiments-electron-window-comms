@@ -7,7 +7,7 @@ declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 const PRELOAD_PATH = MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
 
-const createWindow = ({url=MAIN_WINDOW_WEBPACK_ENTRY, parentPort=null}={}) => {
+const createWindow = ({ url = MAIN_WINDOW_WEBPACK_ENTRY, parentPort = null } = {}) => {
   return new Promise<MessagePortMain>((resolve, reject) => {
     const window = new BrowserWindow({
       width: 800,
@@ -17,39 +17,42 @@ const createWindow = ({url=MAIN_WINDOW_WEBPACK_ENTRY, parentPort=null}={}) => {
       },
       show: false,
     })
-  window.loadURL(url)
-  window.once("ready-to-show", () => {
-    const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
-    serverPort.on("message", handleMessage(serverPort)).start()
-    window.show()
-    window.webContents.openDevTools()
-    window.webContents.postMessage("setup-comms", null, [windowPort])
-    if(parentPort) {
-      serverPort.postMessage({topic:"set-parent"}, [parentPort])
-    }
-    resolve(serverPort)
-  })
+    window.loadURL(url)
+    window.once("ready-to-show", () => {
+      const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
+      serverPort.on("message", handleMessage(serverPort)).start()
+      window.show()
+      window.webContents.openDevTools()
+      setTimeout(() => {
+        window.webContents.postMessage("setup-comms", null, [windowPort])
+        if (parentPort) {
+          serverPort.postMessage({ topic: "set-parent" }, [parentPort])
+        }
+        resolve(serverPort)
+      }, 1000)
+    })
   })
 }
 
 
-  const handleMessage = (client: MessagePortMain) => {
-    return (message: MessageEvent) => {
-      console.log({recieved:message})
-      const { data } = message
-      const { topic, body} = data as OurMessage
-      if (topic === "create-child") {
-        const {name = "child", url} = body
-        createWindow({url}).then(childChannel => {
-            client.postMessage({topic:"add-child", childName: name}, [childChannel])
-        })
-        return
+const handleMessage = (client: MessagePortMain) => {
+  return (message: MessageEvent) => {
+    console.log({ recieved: message })
+    const { data } = message
+    const { topic, body } = data as OurMessage
+    if (topic === "create-child") {
+      const { name = "child", url } = body
+      createWindow({ url }).then(childChannel => {
+        console.log("got child channel", childChannel)
+        client.postMessage({ topic: "add-child", body:{name}}, [childChannel])
+      })
+      return
     }
     const response = { ...body, topic: `echo-${topic}` }
     client.postMessage(response)
   }
 }
-app.on("ready", ()=>{createWindow()})
+app.on("ready", () => { createWindow() })
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

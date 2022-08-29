@@ -39,15 +39,23 @@ const setupComms = () => {
         console.log("got message", event)
         const { data } = event
         const { topic, body } = data
-        if (topic === "add-child") {
-          if (event.ports.length > 0) {
-            console.log("onMessage: got child port!")
-            const childPort = event.ports[0]
-            childPort.addEventListener("message", console.log)
-            childPort.start()
-            return callback(event.data)
-          }
+        const { name } = body
+        const port = event.ports[0]
+        switch (topic) {
+          case "add-child":
+            console.log("adding child", name)
+            addChild(name, port)
+            break
+          case "set-parent":
+            port.addEventListener("message", (event) => {
+              console.log("got message from parent", event.data)
+            })
+            break
+          default:
+            console.log("got message", event.data)
+            break
         }
+        callback(body)
       })
       server.start()
     },
