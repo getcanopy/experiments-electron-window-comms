@@ -9,7 +9,14 @@ declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 const PRELOAD_PATH = MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
 
-const createWindow = ({ url = MAIN_WINDOW_WEBPACK_ENTRY, parentPort = null } = {}) => {
+interface WindowOptions {
+  url?: string
+  parentPort?: MessagePortMain
+}
+
+const createWindow = (options:WindowOptions={}) => {
+  const { url=MAIN_WINDOW_WEBPACK_ENTRY, parentPort } = options
+  console.log(`creating window with url ${url} and parentPort ${parentPort}`)
   return new Promise<MessagePortMain>((resolve, reject) => {
     const window = new BrowserWindow({
       width: 800,
@@ -44,7 +51,7 @@ const handleMessage = (client: MessagePortMain) => {
     const { topic, body } = data as OurMessage
     if (topic === "create-child") {
       const { name = `child-${uuidv4()}`, url } = body
-      createWindow({ url }).then(childChannel => {
+      createWindow({ url, parentPort: client}).then(childChannel => {
         console.log("got child channel", childChannel)
         client.postMessage({ topic: "add-child", body:{name}}, [childChannel])
       })
