@@ -33,7 +33,7 @@ const createMainWindow = () => {
     return (message: MessageEvent) => {
       console.log(message)
       const { data } = message
-      const { topic, body } = data as OurMessage
+      const { topic, body,url } = data as OurMessage
       const response = { ...body, topic: `${topic}-response` }
       console.log("received:", topic, body)
       createChildView().then(childChannel => {

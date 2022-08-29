@@ -1,5 +1,6 @@
 export interface OurMessage{
   topic: "message" | "create-child" | "destroy-child";
-  body: any;
-  from: string;
+  body?: any;
+  from?: string;
+  url?: string
 }
