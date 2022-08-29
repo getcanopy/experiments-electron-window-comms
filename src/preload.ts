@@ -6,6 +6,7 @@ const { contextBridge, ipcRenderer } = require("electron")
 
 const setupComms = () => {
   console.log("setting up communications")
+  // the id is just for  debugging purposes.
   const id = Math.random() * 1000
   const portPromise = new Promise<MessagePort>((resolve, reject) => {
 
@@ -36,6 +37,8 @@ const setupComms = () => {
       server.addEventListener("message", (event) => {
         console.log(id, "onMessage: got message", event)
         if (event.ports.length > 0) {
+          // if we get a message with a port, then we assume that it's a child port.
+          // This is given to us by the server as a result of asking the server to create a new BrowserView.
           console.log(id, "onMessage: got child port!")
           const port = event.ports[0]
           port.start()
