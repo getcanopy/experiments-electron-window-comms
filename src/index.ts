@@ -35,7 +35,7 @@ const createWindow = (options:WindowOptions={}) => {
       setTimeout(() => {
         window.webContents.postMessage("setup-comms", null, [windowPort])
         if (parentPort) {
-          serverPort.postMessage({ topic: "set-parent" }, [parentPort])
+          serverPort.postMessage({ topic: "set-parent", body:{} }, [parentPort])
         }
         resolve(serverPort)
       }, 1000)
@@ -51,9 +51,9 @@ const handleMessage = (client: MessagePortMain) => {
     const { topic, body } = data as OurMessage
     if (topic === "create-child") {
       const { name = `child-${uuidv4()}`, url } = body
-      createWindow({ url, parentPort: client}).then(childChannel => {
-        console.log("got child channel", childChannel)
-        client.postMessage({ topic: "add-child", body:{name}}, [childChannel])
+      createWindow({ url, parentPort: client}).then(childPort => {
+        console.log("got child channel", childPort)
+        client.postMessage({ topic: "add-child", body:{name}}, [childPort])
       })
       return
     }

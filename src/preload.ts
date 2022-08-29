@@ -9,7 +9,10 @@ const setupComms = () => {
   const portPromise = new Promise<MessagePort>((resolve, reject) => {
     // listen to an ipc message that gives us a MessagePort to the server
     ipcRenderer.once("setup-comms", (event) => {
+      console.log("got setup-comms message", event)
       const server = event.ports[0]
+      server.addEventListener("message", processMessage)
+      server.start()
       resolve(server)
     })
   })
@@ -61,15 +64,7 @@ const setupComms = () => {
         }
       })
     },
-    onMessage: async () => {
-      const server = await portPromise
-      // Listen to the server port for a message containing the MessagePort to the browser view.
-      // Yes, this adds a listener for every message. Which is bad.
-      server.addEventListener("message", processMessage)
-      server.start()
-    },
   }
-
   contextBridge.exposeInMainWorld("comms", communicator)
 }
 setupComms()

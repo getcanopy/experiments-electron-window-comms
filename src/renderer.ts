@@ -14,13 +14,6 @@ const createChildView = () => {
 const destroyBrowserView = () => {
   console.log("DESTROYING BROWSERVIEW. Not really. Just pretending.")
 }
-
-const handleMessage = (message:OurMessage) => {
-  console.log("renderer got", message)
-}
-
-comms.onMessage(handleMessage)
-
 const App =  () => {
   return html`
   <h1>This thing can probably control BrowserViews</h1>
