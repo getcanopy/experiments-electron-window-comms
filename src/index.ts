@@ -24,7 +24,7 @@ const createWindow = (options: WindowOptions = {}) => {
       },
     })
     window.loadURL(url)
-    window.webContents.on("did-finish-load", () => {
+    window.webContents.once("did-finish-load", () => {
       window.webContents.openDevTools()
 
       const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
