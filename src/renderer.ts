@@ -13,7 +13,7 @@ const createChildView = () => {
 }
 
 const App =  () => {
-  const [children, setChildren] = useState<MessagePort[]>([])
+  // const [children, setChildren] = useState<MessagePort[]>([])
   return html`
   <h1>Create a "child" BrowserWindow and link em together</h1>
   <p>Now isn't that exciting.</p>
