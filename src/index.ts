@@ -12,7 +12,9 @@ interface WindowOptions {
 }
 
 const createWindow = (options: WindowOptions = {}) => {
+  console.log("createWindow")
   const { url = MAIN_WINDOW_WEBPACK_ENTRY, parentPort } = options
+
   return new Promise<MessagePortMain>((resolve) => {
     const window = new BrowserWindow({
       width: 1920,
@@ -24,8 +26,8 @@ const createWindow = (options: WindowOptions = {}) => {
     window.loadURL(url)
     const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
     serverPort.on("message", handleMessage(serverPort)).start()
-    window.webContents.openDevTools()
     window.webContents.on("did-finish-load", () => {
+      window.webContents.openDevTools()
       window.webContents.postMessage("setup-comms", null, [windowPort])
       if (parentPort) {
         serverPort.postMessage({ topic: "set-parent", body: {} }, [parentPort])
@@ -38,13 +40,13 @@ const createWindow = (options: WindowOptions = {}) => {
 
 const handleMessage = (client: MessagePortMain) => {
   return (message: MessageEvent) => {
-    console.log({ recieved: message })
+    console.log({ recieved: message.data })
     const { data } = message
     const { topic, body } = data
     if (topic === "create-child") {
       const { url } = body
       createWindow({ url, parentPort: client }).then(childPort => {
-        console.log("got child channel", childPort)
+        console.log("got child channel")
         client.postMessage({ topic: "add-child", body: { name: Math.random() } }, [childPort])
       })
       return
