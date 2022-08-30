@@ -19,17 +19,16 @@ const addChild = (childPort: MessagePort) => {
   }
 }
 const processMessage = (event) => {
-  console.log("got message", event)
-  const { data } = event
-  const { topic } = data
+  const { data,  } = event
+  console.log("got message",data)
+
   const port = event.ports[0]
-  console.log(`recieved message with topic: ${topic}`)
+
+  const { topic } = data
+  console.log(`recieved message with topic: ${topic}`, data)
   switch (topic) {
     case "add-child":
-      console.log("adding child", name)
-      if (!port) {
-        throw new Error("no port in add-child message")
-      }
+      console.log("adding child")
       addChild(port)
       break
     case "set-parent":
