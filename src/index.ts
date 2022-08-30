@@ -24,10 +24,12 @@ const createWindow = (options: WindowOptions = {}) => {
       },
     })
     window.loadURL(url)
-    const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
-    serverPort.on("message", handleMessage(serverPort)).start()
     window.webContents.on("did-finish-load", () => {
       window.webContents.openDevTools()
+
+      const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
+      serverPort.on("message", handleMessage(serverPort)).start()
+
       window.webContents.postMessage("setup-comms", null, [windowPort])
       if (parentPort) {
         serverPort.postMessage({ topic: "set-parent", body: {} }, [parentPort])
