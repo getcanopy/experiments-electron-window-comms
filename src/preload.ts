@@ -6,7 +6,7 @@ const { contextBridge, ipcRenderer } = require("electron")
 
 const setupComms = () => {
   console.log("setting up communications")
-  const portPromise = new Promise<MessagePort>((resolve, reject) => {
+  const portPromise = new Promise<MessagePort>((resolve) => {
     // listen to an ipc message that gives us a MessagePort to the server
     ipcRenderer.once("setup-comms", (event) => {
       console.log("got setup-comms message", event)
