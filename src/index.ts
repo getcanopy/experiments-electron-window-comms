@@ -15,8 +15,6 @@ const parents = new Map<number, MessagePortMain>()
 // The preload tells the main process it's ready to upgrade to a MessagePort.
 ipcMain.on("setup-comms", (event) => {
   const { sender } = event
-  console.log(`got setup-comms message from ${sender.id}`)
-
   const { port1: serverPort, port2: windowPort } = new MessageChannelMain()
 
   serverPort.on("message", handleMessage(serverPort))
@@ -53,8 +51,8 @@ const handleMessage = (client: MessagePortMain) => {
   console.log("setting up message handler")
   return (message: MessageEvent) => {
     console.log({ recieved: message.data })
-    // const { data } = message
-    // const { topic, body } = data
+    const { data } = message
+    const { topic, body } = data
     // if (topic === "create-child") {
     //   const { url } = body
     //   createWindow({ url, parentPort: client }).then(childPort => {

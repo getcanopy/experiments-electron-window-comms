@@ -6,25 +6,24 @@ console.log("the preload exists")
 const processMessage = (event) => {
   const { data,  } = event
   console.log("got message",data)
+  const { topic } = data
+  console.log(`recieved message with topic: ${topic}`, data)
 
-  // const port = event.ports[0]
-
-  // const { topic } = data
-  // console.log(`recieved message with topic: ${topic}`, data)
-  // switch (topic) {
-  //   case "add-child":
-  //     console.log("adding child")
-  //     addChild(port)
-  //     break
-  //   case "set-parent":
-  //     port.addEventListener("message", (event) => {
-  //       console.log("got message from parent", event.data)
-  //     })
-  //     break
-  //   default:
-  //     console.log("got message", event.data)
-  //     break
-  // }
+  const port = event.ports[0]
+  switch (topic) {
+    case "add-child":
+      console.log("adding child")
+      addChild(port)
+      break
+    case "set-parent":
+      port.addEventListener("message", (event) => {
+        console.log("got message from parent", event.data)
+      }).start()
+      break
+    default:
+      console.log("got message", event.data)
+      break
+  }
 }
 
 const portPromise = new Promise<MessagePort>((resolve) => {
@@ -32,10 +31,7 @@ const portPromise = new Promise<MessagePort>((resolve) => {
   ipcRenderer.on("setup-comms", (event) => {
     console.log("got setup-comms message", event)
     const [server] = event.ports
-    server.addEventListener("message", (event) => {
-      console.log("got message from server", event.data)
-      const { topic, body } = event.data
-    })
+    server.addEventListener("message", processMessage)
     server.start()
     resolve(server)
   })
@@ -44,6 +40,7 @@ const portPromise = new Promise<MessagePort>((resolve) => {
 ipcRenderer.send("setup-comms")
 
 const addChild = (childPort: MessagePort) => {
+  console.log('adding child')
   childPort.onmessage =  (event) => {
     const { data } = event
     console.log("got message from child", data)
@@ -55,6 +52,7 @@ const communicator = {
   createChild: async ({ url, name }) => {
     console.log("creating child", { url, name })
     const server = await portPromise
+    console.log("port is g2g")
     server.postMessage({
       topic: "create-child",
       body: {
