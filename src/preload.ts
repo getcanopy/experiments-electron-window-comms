@@ -27,7 +27,8 @@ const processMessage = (event, sender) => {
         console.log("I don't know how this happened, but I have no one to echo to")
         return
       }
-      port.postMessage({ topic: "echo-response", body: {message: "hello, son"}})
+      console.log({sender})
+      sender.postMessage({ topic: "echo-response", body: {message: "hello, son"}})
       break
     case "echo-response":
       console.log("received echo response", data)
@@ -52,7 +53,7 @@ const portPromise = new Promise<MessagePort>((resolve) => {
 ipcRenderer.send("setup-comms")
 
 const addChild = (childPort: MessagePort) => {
-  console.log("adding child")
+  console.log("adding child", childPort)
   children.push(childPort)
   childPort.addEventListener("message", (event) => processMessage(event, childPort))
   childPort.start()
@@ -72,7 +73,7 @@ const communicator = {
     })
   },
   sendToChild: (message: any) => {
-    console.log("sending to child", message)
+    console.log(`sending message to ${children.length} children`)
     children.forEach((child) => {
       child.postMessage({topic: "echo", body: message})
     }
