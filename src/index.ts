@@ -12,7 +12,7 @@ interface WindowOptions {
 }
 const parents = new Map<number, MessagePortMain>()
 
-// The renderer tells the main process it's ready to upgrade to a MessagePort.
+// The preload tells the main process it's ready to upgrade to a MessagePort.
 ipcMain.on("setup-comms", (event) => {
   const { sender } = event
   console.log(`got setup-comms message from ${sender.id}`)
@@ -21,7 +21,7 @@ ipcMain.on("setup-comms", (event) => {
 
   serverPort.on("message", handleMessage(serverPort))
   sender.postMessage("setup-comms", null, [windowPort])
-
+  serverPort.postMessage({ topic: "hi!"})
   // send the parent port to the child, if there is one
   const parent = parents.get(sender.id)
   if (parent) {
