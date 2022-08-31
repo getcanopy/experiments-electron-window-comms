@@ -2,8 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contextBridge, ipcRenderer } = require("electron")
 
-console.log("the preload exists")
-const processMessage = (event) => {
+const processMessage = (event, sender) => {
   const { data,  } = event
   console.log("got message",data)
   const { topic } = data
@@ -16,12 +15,26 @@ const processMessage = (event) => {
       addChild(port)
       break
     case "set-parent":
+      // Listen for parent messages
       port.addEventListener("message", (event) => {
         console.log("got message from parent", event.data)
-      }).start()
+      })
+      port.start()
+      port.postMessage({ topic: "echo", body: {message: "hello, dad"}})
+      break
+    case "echo":
+      console.log("echoing message")
+      if(!sender) {
+        console.log("I don't know how this happened, but I have no one to echo to")
+        return
+      }
+      port.postMessage({ topic: "echo-response", body: {message: "hello, son"}})
+      break
+    case "echo-response":
+      console.log("received echo response", data)
       break
     default:
-      console.log("got message", event.data)
+      console.log("go unknown message", event.data)
       break
   }
 }
@@ -31,7 +44,7 @@ const portPromise = new Promise<MessagePort>((resolve) => {
   ipcRenderer.on("setup-comms", (event) => {
     console.log("got setup-comms message", event)
     const [server] = event.ports
-    server.addEventListener("message", processMessage)
+    server.addEventListener("message", (event) => processMessage(event, server))
     server.start()
     resolve(server)
   })
@@ -41,7 +54,7 @@ ipcRenderer.send("setup-comms")
 
 const addChild = (childPort: MessagePort) => {
   console.log("adding child")
-  childPort.addEventListener("message", processMessage)
+  childPort.addEventListener("message", (event) => processMessage(event, childPort))
   childPort.start()
 }
 
