@@ -1,23 +1,7 @@
 //ignore electron require statement
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contextBridge, ipcRenderer } = require("electron")
-console.log("setting up communications")
-const portPromise = new Promise<MessagePort>((resolve) => {
-  // listen to ONE ipc message that gives us a MessagePort to the server :)
-  ipcRenderer.once("setup-comms", (event) => {
-    console.log("got setup-comms message", event)
-    const server = event.ports[0]
-    server.onmessage = processMessage
-    resolve(server)
-  })
-})
 
-const addChild = (childPort: MessagePort) => {
-  childPort.onmessage =  (event) => {
-    const { data } = event
-    console.log("got message from child", data)
-  }
-}
 const processMessage = (event) => {
   const { data,  } = event
   console.log("got message",data)
@@ -41,8 +25,27 @@ const processMessage = (event) => {
       break
   }
 }
-const communicator = {
 
+const portPromise = new Promise<MessagePort>((resolve) => {
+  // listen to ONE ipc message that gives us a MessagePort to the server :)
+  ipcRenderer.once("setup-comms", (event) => {
+    console.log("got setup-comms message")
+    const server = event.ports[0]
+    server.onmessage = processMessage
+    resolve(server)
+  })
+})
+
+ipcRenderer.send("setup-comms")
+
+const addChild = (childPort: MessagePort) => {
+  childPort.onmessage =  (event) => {
+    const { data } = event
+    console.log("got message from child", data)
+  }
+}
+
+const communicator = {
   // This actually just asks the server to create a MessagePort to the browser view.
   createChild: async ({ url, name }) => {
     console.log("creating child", { url, name })
