@@ -40,11 +40,9 @@ const portPromise = new Promise<MessagePort>((resolve) => {
 ipcRenderer.send("setup-comms")
 
 const addChild = (childPort: MessagePort) => {
-  console.log('adding child')
-  childPort.onmessage =  (event) => {
-    const { data } = event
-    console.log("got message from child", data)
-  }
+  console.log("adding child")
+  childPort.addEventListener("message", processMessage)
+  childPort.start()
 }
 
 const communicator = {

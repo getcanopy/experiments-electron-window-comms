@@ -49,7 +49,10 @@ const createWindow = (options: WindowOptions = {}) => {
 
 const handleMessage = (client: MessagePortMain) => {
   console.log("setting up message handler")
+  client.start()
   return (message: MessageEvent) => {
+
+    console.log("OMG A MESSAGE")
     console.log({ recieved: message.data })
     const { data } = message
     const { topic, body } = data
