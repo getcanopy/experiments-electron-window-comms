@@ -42,7 +42,7 @@ const processMessage = (event, sender) => {
 
 const portPromise = new Promise<MessagePort>((resolve) => {
   // listen to ONE ipc message that gives us a MessagePort to the server :)
-  ipcRenderer.on("setup-comms", (event) => {
+  ipcRenderer.once("setup-comms", (event) => {
     console.log("got setup-comms message", event)
     const [server] = event.ports
     server.addEventListener("message", (event) => processMessage(event, server))
@@ -88,4 +88,6 @@ const communicator = {
     dad.postMessage({topic: "echo", body: message})
   }
 }
+console.log("hello, fellow hacker. your communication device will be printed below")
+console.log(communicator)
 contextBridge.exposeInMainWorld("comms", communicator)
