@@ -74,6 +74,7 @@ const communicator = {
     })
   },
   sendToChild: (message: any) => {
+    console.error("This doesn't work in the current implementation, because the backend gave away it's only port")
     console.log(`sending message to ${children.length} children`)
     children.forEach((child) => {
       child.postMessage({topic: "echo", body: message})
