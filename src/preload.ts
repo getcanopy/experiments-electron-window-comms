@@ -3,7 +3,7 @@
 const { contextBridge, ipcRenderer } = require("electron")
 
 const children: MessagePort[] = []
-
+let dad
 const processMessage = (event, sender) => {
   const { data,  } = event
   const { topic } = data
@@ -14,7 +14,8 @@ const processMessage = (event, sender) => {
       addChild(port)
       break
     case "set-parent":
-      // Listen for parent messages
+      console.log("turns out I have a dad after all")
+      dad = port
       port.addEventListener("message", (event) => {
         console.log("got message from parent", event.data)
       })
@@ -34,7 +35,7 @@ const processMessage = (event, sender) => {
       console.log("received echo response", data)
       break
     default:
-      console.log("go unknown message", event.data)
+      console.log(`I have no idea what "${topic}" means, but I refuse to respond to it`)
       break
   }
 }
@@ -76,8 +77,15 @@ const communicator = {
     console.log(`sending message to ${children.length} children`)
     children.forEach((child) => {
       child.postMessage({topic: "echo", body: message})
+    })
+  },
+  sendToDad: (message: any) => {
+    console.log("sending message to dad")
+    if(!dad){
+      console.log("I don't have a dad")
+      return
     }
-    )
+    dad.postMessage({topic: "echo", body: message})
   }
 }
 contextBridge.exposeInMainWorld("comms", communicator)
