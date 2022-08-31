@@ -88,6 +88,11 @@ const communicator = {
     dad.postMessage({topic: "echo", body: message})
   }
 }
-console.log("hello, fellow hacker. your communication device will be printed below")
-console.log(communicator)
 contextBridge.exposeInMainWorld("comms", communicator)
+// Expose the communicator in the console so we can use it in the devtools.
+setTimeout(() => {
+  console.log(new Array(100).fill("~").join(""))
+  console.log("hello there, fellow developer. below is ur communications device.")
+  console.log({comms:communicator})
+  console.log(new Array(100).fill("~").join(""))
+} , 1000)
