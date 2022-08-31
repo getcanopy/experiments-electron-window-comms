@@ -19,11 +19,15 @@ ipcMain.on("setup-comms", (event) => {
 
   serverPort.on("message", handleMessage(serverPort))
   sender.postMessage("setup-comms", null, [windowPort])
-  serverPort.postMessage({ topic: "hi!"})
+  serverPort.postMessage({ topic: "hi!" })
   // send the parent port to the child, if there is one
   const parent = parents.get(sender.id)
   if (parent) {
-    serverPort.postMessage({ topic: "set-parent", body: { name: Math.random() } })
+    console.log("giving away parent port")
+    serverPort.postMessage({
+      topic: "set-parent",
+      body: { name: Math.random()}}, [parent])
+      parents.delete(sender.id)
   }
 })
 
@@ -52,20 +56,20 @@ const handleMessage = (client: MessagePortMain) => {
   client.start()
   return (message: MessageEvent) => {
 
-    console.log("OMG A MESSAGE")
     console.log({ recieved: message.data })
     const { data } = message
     const { topic, body } = data
-    // if (topic === "create-child") {
-    //   const { url } = body
-    //   createWindow({ url, parentPort: client }).then(childPort => {
-    //     console.log("got child channel")
-    //     client.postMessage({ topic: "add-child", body: { name: Math.random() } }, [childPort])
-    //   })
-    //   return
-    // }
-    // const response = { ...body, topic: `echo-${topic}` }
-    // client.postMessage(response)
+    if (topic === "create-child") {
+      const { url } = body
+      createWindow({ url, parentPort: client })
+        // .then(childPort => {
+        //   console.log("got child channel")
+        //   client.postMessage({ topic: "add-child", body: { name: Math.random() } }, [childPort])
+        // })
+      return
+    }
+    const response = { ...body, topic: `echo-${topic}` }
+    client.postMessage(response)
   }
 }
 app.on("ready", () => { createWindow() })
