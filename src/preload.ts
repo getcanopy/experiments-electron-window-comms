@@ -2,12 +2,11 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contextBridge, ipcRenderer } = require("electron")
 
+const children: MessagePort[] = []
+
 const processMessage = (event, sender) => {
   const { data,  } = event
-  console.log("got message",data)
   const { topic } = data
-  console.log(`recieved message with topic: ${topic}`, data)
-
   const port = event.ports[0]
   switch (topic) {
     case "add-child":
@@ -54,6 +53,7 @@ ipcRenderer.send("setup-comms")
 
 const addChild = (childPort: MessagePort) => {
   console.log("adding child")
+  children.push(childPort)
   childPort.addEventListener("message", (event) => processMessage(event, childPort))
   childPort.start()
 }
@@ -63,7 +63,6 @@ const communicator = {
   createChild: async ({ url, name }) => {
     console.log("creating child", { url, name })
     const server = await portPromise
-    console.log("port is g2g")
     server.postMessage({
       topic: "create-child",
       body: {
@@ -72,5 +71,12 @@ const communicator = {
       }
     })
   },
+  sendToChild: (message: any) => {
+    console.log("sending to child", message)
+    children.forEach((child) => {
+      child.postMessage({topic: "echo", body: message})
+    }
+    )
+  }
 }
 contextBridge.exposeInMainWorld("comms", communicator)
