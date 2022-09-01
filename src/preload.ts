@@ -4,15 +4,16 @@ const { contextBridge, ipcRenderer } = require("electron")
 
 const children: MessagePort[] = []
 let dad
-const processMessage = (event, sender) => {
+const processMessage = (event, sender:MessagePort) => {
   const { data: { topic, body }, ports: [port] } = event
+  console.log({topic, body})
   switch (topic) {
     case "add-child":
       console.log("adding child")
       addChild(port)
+      port.postMessage({ topic: "added-child", body: { status: "ok" } })
       break
     case "set-parent":
-      console.log("turns out I have a dad after all")
       dad = port
       port.addEventListener("message", (event) => {
         console.log("got message from parent", event.data)
@@ -21,12 +22,6 @@ const processMessage = (event, sender) => {
       port.postMessage({ topic: "echo", body: { message: "hello, dad" } })
       break
     case "echo":
-      console.log("echoing message")
-      if (!sender) {
-        console.log("I don't know how this happened, but I have no one to echo to")
-        return
-      }
-      console.log({ sender })
       sender.postMessage({ topic: "echo-response", body: { message: "hello, son" } })
       break
     case "echo-response":
@@ -72,13 +67,12 @@ const communicator = {
     })
   },
   sendToChild: (message: any) => {
-    console.error("This doesn't work in the current implementation, because the backend gave away it's only port")
     console.log(`sending message to ${children.length} children`)
     children.forEach((child) => {
       child.postMessage({ topic: "echo", body: message })
     })
   },
-  sendToDad: (message: any) => {
+  sendToParent: (message: any) => {
     console.log("sending message to dad")
     if (!dad) {
       console.log("I don't have a dad")
