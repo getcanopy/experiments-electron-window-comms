@@ -20,7 +20,7 @@ ipcMain.on("setup-comms", (event) => {
   const parent = parents.get(sender.id)
   if (parent) {
     createMessagePortTo(parent).then((port) => {
-      console.log("created message port to parent", port)
+      console.log("created message port to parent")
       serverPort.postMessage({ topic: "set-parent" }, [port])
     })
   }
@@ -72,7 +72,6 @@ const createMessagePortTo = (parent: MessagePortMain): Promise<MessagePortMain> 
   return new Promise((resolve) => {
     const { port1, port2 } = new MessageChannelMain()
     port2.once("message", () => {
-      console.log("got confirmation from parent")
       resolve(port2)
     })
     port2.start()
