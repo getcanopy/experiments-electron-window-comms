@@ -29,8 +29,8 @@ ipcMain.on("setup-comms", (event) => {
 const createWindow = (options: WindowOptions = {}) => {
   const { url = MAIN_WINDOW_WEBPACK_ENTRY, parentPort } = options
   const window = new BrowserWindow({
-    width: 1920,
-    height: 1080,
+    width: 800,
+    height: 600,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
@@ -40,13 +40,12 @@ const createWindow = (options: WindowOptions = {}) => {
   }
   window.loadURL(url)
   window.webContents.once("did-finish-load", () => {
-    window.webContents.openDevTools()
+  window.webContents.openDevTools({mode:"bottom"})
   })
 }
 
 
 const handleMessage = (client: MessagePortMain) => {
-  console.log("setting up message handler")
   client.start()
   return (message: MessageEvent) => {
 

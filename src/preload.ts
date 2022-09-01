@@ -5,9 +5,7 @@ const { contextBridge, ipcRenderer } = require("electron")
 const children: MessagePort[] = []
 let dad
 const processMessage = (event, sender) => {
-  const { data,  } = event
-  const { topic } = data
-  const port = event.ports[0]
+  const { data: { topic, body }, ports: [port] } = event
   switch (topic) {
     case "add-child":
       console.log("adding child")
@@ -20,19 +18,19 @@ const processMessage = (event, sender) => {
         console.log("got message from parent", event.data)
       })
       port.start()
-      port.postMessage({ topic: "echo", body: {message: "hello, dad"}})
+      port.postMessage({ topic: "echo", body: { message: "hello, dad" } })
       break
     case "echo":
       console.log("echoing message")
-      if(!sender) {
+      if (!sender) {
         console.log("I don't know how this happened, but I have no one to echo to")
         return
       }
-      console.log({sender})
-      sender.postMessage({ topic: "echo-response", body: {message: "hello, son"}})
+      console.log({ sender })
+      sender.postMessage({ topic: "echo-response", body: { message: "hello, son" } })
       break
     case "echo-response":
-      console.log("received echo response", data)
+      console.log("received echo response", {topic, body})
       break
     default:
       console.log(`I have no idea what "${topic}" means, but I refuse to respond to it`)
@@ -77,16 +75,16 @@ const communicator = {
     console.error("This doesn't work in the current implementation, because the backend gave away it's only port")
     console.log(`sending message to ${children.length} children`)
     children.forEach((child) => {
-      child.postMessage({topic: "echo", body: message})
+      child.postMessage({ topic: "echo", body: message })
     })
   },
   sendToDad: (message: any) => {
     console.log("sending message to dad")
-    if(!dad){
+    if (!dad) {
       console.log("I don't have a dad")
       return
     }
-    dad.postMessage({topic: "echo", body: message})
+    dad.postMessage({ topic: "echo", body: message })
   }
 }
 contextBridge.exposeInMainWorld("comms", communicator)
@@ -94,6 +92,6 @@ contextBridge.exposeInMainWorld("comms", communicator)
 setTimeout(() => {
   console.log(new Array(100).fill("~").join(""))
   console.log("hello there, fellow developer. below is ur communications device.")
-  console.log({comms:communicator})
+  console.log({ comms: communicator })
   console.log(new Array(100).fill("~").join(""))
-} , 1000)
+}, 1000)
