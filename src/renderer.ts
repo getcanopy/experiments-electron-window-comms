@@ -1,6 +1,5 @@
 import "./index.css"
 import { h, render } from "preact"
-import {useState} from "preact/hooks"
 
 import htm from "htm"
 import {Communicator} from "./Communicator"

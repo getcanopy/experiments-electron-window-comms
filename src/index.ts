@@ -18,17 +18,11 @@ ipcMain.on("setup-comms", (event) => {
   sender.postMessage("setup-comms", null, [windowPort])
   serverPort.postMessage({ topic: "hi!" })
 
-  // send the parent port to the child, if there is one
-  // NOTE: This gives the only port we have access to to the child.
-  // So in this case, "prime" can only have 1 child, then we lose the handle to the prime port.
-  // Irl we should ask for another port from the parent before giving our only one away.
   const parent = parents.get(sender.id)
   if (parent) {
-    console.log("giving away parent port")
-    serverPort.postMessage({
-      topic: "set-parent",
-      body: { name: Math.random()}}, [parent])
-      parents.delete(sender.id)
+    createMessagePortTo(parent).then((port) => {
+      serverPort.postMessage({ topic: "set-parent" }, [port])
+    })
   }
 })
 
@@ -75,3 +69,11 @@ app.on("window-all-closed", () => {
     app.quit()
   }
 })
+const createMessagePortTo = (parent: MessagePortMain): Promise<MessagePortMain> => {
+  return new Promise((resolve) => {
+    const { port1, port2 } = new MessageChannelMain()
+    parent.postMessage({ topic: "add-child" }, [port1])
+    port2.once("message", () => resolve(port2))
+  })
+}
+
