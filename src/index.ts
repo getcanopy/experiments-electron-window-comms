@@ -5,48 +5,38 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
 interface WindowOptions {
   url?: string
+  preload?: string
   parentPort?: MessagePortMain
 }
 
 const parents = new Map<number, MessagePortMain>()
 
 const createWindow = (options: WindowOptions = {}) => {
-  const { url = MAIN_WINDOW_WEBPACK_ENTRY, parentPort } = options
+  const {url = MAIN_WINDOW_WEBPACK_ENTRY, preload= MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY, } = options
   const window = new BrowserWindow({
     width: 800,
     height: 600,
-    webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-    },
+    webPreferences: {preload},
   })
-  if (parentPort) {
-    parents.set(window.webContents.id, parentPort)
-  }
   window.loadURL(url)
   window.webContents.openDevTools({ mode: "bottom" })
+  return window.webContents.id
 }
 
-
-const handleMessage = (client: MessagePortMain) => {
-  client.start()
-  return (message: MessageEvent) => {
-    const { data: { topic, body }, ports: [port] } = message
-    console.log({ topic, body, port })
-    if (topic === "create-child") {
-      const { url } = body
-      createWindow({ url, parentPort: port })
-      return
-    }
+const handleMessage = (message: MessageEvent) => {
+  const { data: {body: {url,preload} }, ports: [port] } = message
+    const windowId = createWindow({ url, preload})
+    parents.set(windowId, port)
+    return windowId
   }
-}
 
 ipcMain.on("setup-comms", ({ ports: [port], sender }) => {
-  console.log("got port", port)
-  port.on("message", handleMessage(port))
   const parent = parents.get(sender.id)
   parents.delete(sender.id)
   const ports = parent ? [parent] : []
+  port.on("message", handleMessage)
   port.postMessage({ topic: "set-parent" }, ports)
+  port.start()
 })
 
 app.on("ready", () => { createWindow() })
@@ -56,4 +46,3 @@ app.on("window-all-closed", () => {
     app.quit()
   }
 })
-

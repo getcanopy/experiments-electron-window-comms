@@ -7,14 +7,11 @@ const { port1: windowPort, port2: server } = new MessageChannel()
 let dad: MessagePort | undefined
 
 server.addEventListener("message", ({ ports: [port] }) => {
-  console.log("got port", port)
   if(!port) return
   dad = port
   port.addEventListener("message", (event) => processMessage(event, port))
   port.start()
 })
-
-server.addEventListener("message", console.log)
 server.start()
 
 ipcRenderer.postMessage("setup-comms", null, [windowPort])
@@ -26,7 +23,7 @@ const processMessage = (event, sender: MessagePort) => {
   console.log({ topic, body })
   switch (topic) {
     case "echo":
-      sender.postMessage({ topic: "echo-response", body: { message: "hello, son" } })
+      sender.postMessage({ topic: "echo-response", body: { message: body } })
       break
     case "echo-response":
       console.log("received echo response", { topic, body })
@@ -41,7 +38,6 @@ const addChild = (childPort: MessagePort) => {
   console.log("adding child", childPort)
   children.push(childPort)
   childPort.addEventListener("message", (event) => processMessage(event, childPort))
-  childPort.start()
 }
 
 const communicator = {
@@ -56,6 +52,7 @@ const communicator = {
         url
       }
     }, [port2])
+    port1.start()
   },
   sendToChild: (message: any) => {
     console.log(`sending message to ${children.length} children`)
