@@ -1,4 +1,4 @@
-import { app, BrowserWindow, MessageEvent, MessagePortMain, ipcMain } from "electron"
+import { app, BrowserWindow, MessageEvent, MessagePortMain, ipcMain, WebContents } from "electron"
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -16,25 +16,34 @@ const createWindow = (options: WindowOptions = {}) => {
   const window = new BrowserWindow({
     width: 800,
     height: 600,
-    webPreferences: {preload},
+    webPreferences: {
+      preload,
+      enablePreferredSizeMode: true,
+    },
   })
   window.loadURL(url)
   window.webContents.openDevTools({ mode: "bottom" })
   return window.webContents.id
 }
 
-const handleMessage = (message: MessageEvent) => {
+const handleMessage = (port: MessagePortMain, sender:WebContents)=>{
+  sender.on("preferred-size-changed", (event, size) => {
+    port.postMessage({ topic: "prefered-size-changed", body: size })
+  })
+  return (message: MessageEvent) => {
   const { data: {body: {url,preload} }, ports: [port] } = message
     const windowId = createWindow({ url, preload})
     parents.set(windowId, port)
     return windowId
   }
+}
 
 ipcMain.on("setup-comms", ({ ports: [port], sender }) => {
   const parent = parents.get(sender.id)
   parents.delete(sender.id)
   const ports = parent ? [parent] : []
-  port.on("message", handleMessage)
+  console.log("setting up comms", {port, ports})
+  port.on("message", handleMessage(port,sender))
   port.postMessage({ topic: "set-parent" }, ports)
   port.start()
 })

@@ -6,21 +6,34 @@ const { port1: windowPort, port2: server } = new MessageChannel()
 
 let dad: MessagePort | undefined
 
-server.addEventListener("message", ({ ports: [port] }) => {
-  if(!port) return
-  dad = port
-  port.addEventListener("message", (event) => processMessage(event, port))
-  port.start()
+server.addEventListener("message", ({ data: {topic,body}, ports: [port] }) => {
+  console.log("server received message", { topic, body, port })
+  switch(topic){
+    case "set-parent":
+      if(!port) return
+      dad = port
+      port.addEventListener("message", (event) => processMessage(event, port))
+      port.start()
+    return
+
+    case "prefered-size-changed":
+      if(!dad) {
+        console.log("no parent to send prefered size to")
+        return
+      }
+      dad.postMessage({topic: "size-changed", body})
+      return
+  }
 })
 server.start()
 
 ipcRenderer.postMessage("setup-comms", null, [windowPort])
 
 
-const children: MessagePort[] = []
+const children: {port: MessagePort, element: HTMLElement}[] = []
 const processMessage = (event, sender: MessagePort) => {
   const { data: { topic, body } } = event
-  console.log({ topic, body })
+  console.log("recieved message from child", { topic, body })
   switch (topic) {
     case "echo":
       sender.postMessage({ topic: "echo-response", body: { message: body } })
@@ -34,10 +47,17 @@ const processMessage = (event, sender: MessagePort) => {
   }
 }
 
-const addChild = (childPort: MessagePort) => {
-  console.log("adding child", childPort)
-  children.push(childPort)
-  childPort.addEventListener("message", (event) => processMessage(event, childPort))
+const addChild = (port: MessagePort) => {
+  console.log("adding child", port)
+  const parentElement = document.getElementById("children")
+  if(!parentElement) return
+
+  const element = document.createElement("div")
+  element.innerText = "I am a child"
+  parentElement.appendChild(element)
+
+  children.push({port, element})
+  port.addEventListener("message", (event) => processMessage(event, port))
 }
 
 const communicator = {
@@ -56,8 +76,8 @@ const communicator = {
   },
   sendToChild: (message: any) => {
     console.log(`sending message to ${children.length} children`)
-    children.forEach((child) => {
-      child.postMessage({ topic: "echo", body: message })
+    children.forEach(({port}) => {
+      port.postMessage({ topic: "echo", body: message })
     })
   },
   sendToParent: (message: any) => {

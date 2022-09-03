@@ -18,6 +18,8 @@ const App =  () => {
   <p>Now isn't that exciting.</p>
   <div id="control-browser-views">
     <button onClick=${createChildView}>Create And Link</button>
-  </div>`
+  </div>
+  <div id="children"></div>
+  `
 }
 render(html`<${App}/>`, document.body)
