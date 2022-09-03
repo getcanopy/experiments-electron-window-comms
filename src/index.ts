@@ -33,9 +33,10 @@ const handleMessage = (message: MessageEvent) => {
 ipcMain.on("setup-comms", ({ ports: [port], sender }) => {
   const parent = parents.get(sender.id)
   parents.delete(sender.id)
-  const ports = parent ? [parent] : []
   port.on("message", handleMessage)
-  port.postMessage({ topic: "set-parent" }, ports)
+  if(parent){
+    port.postMessage({ topic: "set-parent" }, [parent])
+  }
   port.start()
 })
 
