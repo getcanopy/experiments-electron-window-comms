@@ -21,7 +21,7 @@ const createWindow = (options: WindowOptions = {}) => {
       enablePreferredSizeMode: true,
     },
   })
-  windowsById.set(window.id, window)
+  windowsById.set(window.webContents.id, window)
   window.loadURL(url)
   window.webContents.on("did-finish-load", () => {
     window.webContents.openDevTools({ mode: "bottom" })
@@ -43,10 +43,11 @@ const handleMessage = (port: MessagePortMain, sender: WebContents) => {
       }
       case "position-changed": {
         console.log("position changed", { body })
-        const { id, position } = body
+        const { id, bounds } = body
         const window = windowsById.get(id)
+        console.log("setting position", { window, bounds })
         if (!window) return
-        window.setBounds({ x: position.x, y: position.y })
+        window.setBounds(bounds)
         return
       }
     }

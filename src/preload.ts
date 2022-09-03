@@ -6,22 +6,22 @@ const { port1: windowPort, port2: server } = new MessageChannel()
 
 let dad: MessagePort | undefined
 
-server.addEventListener("message", ({ data: {topic,body}, ports: [port] }) => {
+server.addEventListener("message", ({ data: { topic, body }, ports: [port] }) => {
   console.log("server received message", { topic, body, port })
-  switch(topic){
+  switch (topic) {
     case "set-parent":
-      if(!port) return
+      if (!port) return
       dad = port
       port.addEventListener("message", (event) => processMessage(event, port))
       port.start()
-    return
+      return
 
     case "prefered-size-changed":
-      if(!dad) {
+      if (!dad) {
         console.log("no parent to send prefered size to")
         return
       }
-      dad.postMessage({topic: "size-changed", body})
+      dad.postMessage({ topic: "size-changed", body })
       return
   }
 })
@@ -30,7 +30,7 @@ server.start()
 ipcRenderer.postMessage("setup-comms", null, [windowPort])
 
 
-const children: {port: MessagePort, element: HTMLElement, id?:number}[] = []
+const children: { port: MessagePort, element: HTMLElement, id?: number }[] = []
 const processMessage = (event, sender: MessagePort) => {
   const { data: { topic, body } } = event
   console.log("recieved message from child", { topic, body })
@@ -45,22 +45,32 @@ const processMessage = (event, sender: MessagePort) => {
     }
     case "size-changed": {
       const child = children.find(c => c.port === sender)
-      if(!child) return
-      const {element, id} = child
+      if (!child) return
+      const { element, id } = child
       element.style.width = `${body.width}px`
       element.style.height = `${body.height}px`
       console.log("setting child size", { child, body, element })
-      if(id) {
+      if (id) {
         console.log(`sending position update to server for ${id}`)
-        const {x,y} = element.getBoundingClientRect()
-        server.postMessage({topic:"position-changed", body:{id, position: {x,y}}})
+        const { x, y, width, height } = element.getBoundingClientRect()
+        server.postMessage({
+          topic: "position-changed", body: {
+            id, bounds: {
+              x: Math.round(x),
+              y: Math.round(y),,
+              width: Math.round(width),
+              height: Math.round(height),
+            }
+          }
+        })
+
       }
       return
-      }
+    }
     case "set-child-id": {
       console.log("setting child id", { body })
       const child = children.find(c => c.port === sender)
-      if(!child) return
+      if (!child) return
       child.id = body
       return
     }
@@ -74,14 +84,14 @@ const processMessage = (event, sender: MessagePort) => {
 const addChild = (port: MessagePort) => {
   console.log("adding child", port)
   const parentElement = document.getElementById("children")
-  if(!parentElement) return
+  if (!parentElement) return
 
   const element = document.createElement("div")
   element.innerText = "I am a child"
   element.classList.add("child")
   parentElement.appendChild(element)
 
-  children.push({port, element})
+  children.push({ port, element })
   port.addEventListener("message", (event) => processMessage(event, port))
 }
 
@@ -101,7 +111,7 @@ const communicator = {
   },
   sendToChild: (message: any) => {
     console.log(`sending message to ${children.length} children`)
-    children.forEach(({port}) => {
+    children.forEach(({ port }) => {
       port.postMessage({ topic: "echo", body: message })
     })
   },
