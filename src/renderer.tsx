@@ -1,7 +1,7 @@
 import "./index.css"
 
 import * as React from "react"
-import * as ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 
 import {Communicator} from "./Communicator"
 declare const comms: Communicator
@@ -24,4 +24,6 @@ const App =  () => {
 </div>
   )
 }
-ReactDOM.render(<App />, document.getElementById("root"))
+const container = document.getElementById("root")
+const root = createRoot(container) // createRoot(container!) if you use TypeScript
+root.render(<App tab="home" />)

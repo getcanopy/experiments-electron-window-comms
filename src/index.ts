@@ -10,8 +10,8 @@ interface WindowOptions {
 }
 
 const parents = new Map<number, MessagePortMain>()
-
 const createWindow = (options: WindowOptions = {}) => {
+  console.log({MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: `${MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY}, __dirname: ${__dirname}`})
   const {url = MAIN_WINDOW_WEBPACK_ENTRY, preload= MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY, } = options
   const window = new BrowserWindow({
     width: 800,
