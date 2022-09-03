@@ -45,8 +45,11 @@ const handleMessage = (port: MessagePortMain, sender: WebContents) => {
         console.log("position changed", { body })
         const { id, bounds } = body
         const window = windowsById.get(id)
-        console.log("setting position", { window, bounds })
-        if (!window) return
+        if (!window) {
+          console.error("no window found for id", id)
+          return
+        }
+        console.log(`setting bounds for ${window.webContents.id} to`, bounds)
         window.setBounds(bounds)
         return
       }
