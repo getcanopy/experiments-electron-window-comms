@@ -1,9 +1,10 @@
 //ignore electron require statement
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { contextBridge, ipcRenderer } = require("electron")
+import { contextBridge, ipcRenderer }  from "electron"
+import {Communicator, canCommunicate} from './Communicator'
 console.log("starting up")
+console.log("can communicate?", canCommunicate)
 const { port1: windowPort, port2: server } = new MessageChannel()
-
 let dad: MessagePort | undefined
 
 server.addEventListener("message", ({ data: {topic,body}, ports: [port] }) => {
