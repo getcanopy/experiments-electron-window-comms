@@ -22,7 +22,9 @@ const createWindow = (options: WindowOptions = {}) => {
     },
   })
   window.loadURL(url)
-  window.webContents.openDevTools({ mode: "bottom" })
+  window.webContents.on("did-finish-load", () => {
+    window.webContents.openDevTools({ mode: "bottom" })
+  })
   return window.webContents.id
 }
 

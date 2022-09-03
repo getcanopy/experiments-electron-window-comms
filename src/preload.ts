@@ -1,7 +1,7 @@
 //ignore electron require statement
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contextBridge, ipcRenderer } = require("electron")
-
+console.log("starting up")
 const { port1: windowPort, port2: server } = new MessageChannel()
 
 let dad: MessagePort | undefined
