@@ -52,8 +52,16 @@
               "entryPoints": [
                 {
                   "html": "./src/index.html",
-                  "js": "./src/renderer.ts",
+                  "js": "./src/renderer.tsx",
                   "name": "main_window",
+                  "preload": {
+                    "js": "./src/preload.ts"
+                  }
+                },
+                {
+                  "html": "./src/index.html",
+                  "js": "./src/renderer.tsx",
+                  "name": "other_window",
                   "preload": {
                     "js": "./src/preload.ts"
                   }
@@ -88,8 +96,8 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0",
-    "htm": "^3.1.1",
-    "preact": "^10.10.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "uuid": "^8.3.2"
   },
   "engines": {
