@@ -52,9 +52,10 @@ const processMessage = (event, sender: MessagePort) => {
       return
     }
     case "set-child-id": {
-      // console.log("setting child id", { body })
+      console.log("setting child id", { body })
       const child = children.find(c => c.port === sender)
       if (!child) return
+      console.log("found child", child)
       child.id = body
       return
     }
@@ -65,26 +66,30 @@ const processMessage = (event, sender: MessagePort) => {
   }
 }
 
-const resizeObserver = new ResizeObserver((entries) => {
-  console.log("resize observer fired", { entries })
-  for (const entry of entries) {
-    console.log("resize observer fired", { entry })
-    const child = children.find(c => c.element === entry.target)
+const intersectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    const { target } = entry
+    const child = children.find(c => c.element === target)
     if (!child) return
-    const { element, id } = child
-    const { x, y, width, height } = element.getBoundingClientRect()
-    console.log("sending position changed", { x, y, width, height })
-    server.postMessage({
+    const { id } = child
+    console.log({id})
+    const { intersectionRect } = entry
+    const { x, y, width, height } = intersectionRect
+    const msg = {
       topic: "position-changed", body: {
-        id, bounds: {
+        id: child.id,
+        bounds: {
           x: Math.round(x),
           y: Math.round(y),
           width: Math.round(width),
-          height: Math.round(height),
+          height: Math.round(height)
         }
       }
-    })
-  }
+    }
+    console.log("sending message to child", { msg })
+    server.postMessage(msg)
+    // port.postMessage({ topic: "intersection-changed", body: { intersectionRect, boundingClientRect } })
+  })
 })
 
 const addChild = (port: MessagePort) => {
@@ -95,7 +100,7 @@ const addChild = (port: MessagePort) => {
   element.innerText = "I am a child"
   element.classList.add("child")
   parentElement.appendChild(element)
-  resizeObserver.observe(element)
+  intersectionObserver.observe(element)
   children.push({ port, element })
   port.addEventListener("message", (event) => processMessage(event, port))
 }
