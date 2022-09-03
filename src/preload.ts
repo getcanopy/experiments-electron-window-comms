@@ -30,7 +30,7 @@ server.start()
 ipcRenderer.postMessage("setup-comms", null, [windowPort])
 
 
-const children: {port: MessagePort, element: HTMLElement}[] = []
+const children: {port: MessagePort, element: HTMLElement, id?:number}[] = []
 const processMessage = (event, sender: MessagePort) => {
   const { data: { topic, body } } = event
   console.log("recieved message from child", { topic, body })
@@ -45,12 +45,18 @@ const processMessage = (event, sender: MessagePort) => {
     }
     case "size-changed": {
       const child = children.find(c => c.port === sender)
-      console.log("child size changed", { child, body })
       if(!child) return
       const {element} = child
       element.style.width = `${body.width}px`
       element.style.height = `${body.height}px`
       console.log("setting child size", { child, body, element })
+      return
+    }
+    case "set-child-id": {
+      console.log("setting child id", { body })
+      const child = children.find(c => c.port === sender)
+      if(!child) return
+      child.id = body
       return
     }
     default: {
