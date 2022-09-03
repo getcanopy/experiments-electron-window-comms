@@ -42,6 +42,7 @@ const handleMessage = (port: MessagePortMain, sender: WebContents) => {
         return
       }
       case "position-changed": {
+        console.log("position changed", { body })
         const { id, position } = body
         const window = windowsById.get(id)
         if (!window) return
@@ -49,9 +50,9 @@ const handleMessage = (port: MessagePortMain, sender: WebContents) => {
         return
       }
     }
-    const { data: { body: { url, preload } }, ports: [port] } = message
+    const { data: { body: { url, preload } }, ports: [wPort] } = message
     const windowId = createWindow({ url, preload })
-    parents.set(windowId, port)
+    parents.set(windowId, wPort)
     return windowId
   }
 }
