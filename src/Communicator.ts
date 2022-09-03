@@ -1,3 +1,3 @@
 export interface Communicator{
-  createChild({name, url}): Promise<MessagePort>
+  createChild(args:any): Promise<MessagePort>
 }

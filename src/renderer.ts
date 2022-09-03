@@ -8,7 +8,7 @@ const html = htm.bind(h)
 declare const comms: Communicator
 
 const createChildView = () => {
-  return comms.createChild({name:"child", url:window.location.href})
+  return comms.createChild({url:"https://reddit.com"})
 }
 
 const App =  () => {
