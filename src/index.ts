@@ -10,9 +10,9 @@ interface WindowOptions {
 }
 
 const parents = new Map<number, MessagePortMain>()
-
+const windowsById = new Map<number, BrowserWindow>()
 const createWindow = (options: WindowOptions = {}) => {
-  const {url = MAIN_WINDOW_WEBPACK_ENTRY, preload= MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY, } = options
+  const { url = MAIN_WINDOW_WEBPACK_ENTRY, preload = MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY, } = options
   const window = new BrowserWindow({
     width: 800,
     height: 600,
@@ -21,6 +21,7 @@ const createWindow = (options: WindowOptions = {}) => {
       enablePreferredSizeMode: true,
     },
   })
+  windowsById.set(window.id, window)
   window.loadURL(url)
   window.webContents.on("did-finish-load", () => {
     window.webContents.openDevTools({ mode: "bottom" })
@@ -28,13 +29,28 @@ const createWindow = (options: WindowOptions = {}) => {
   return window.webContents.id
 }
 
-const handleMessage = (port: MessagePortMain, sender:WebContents)=>{
+const handleMessage = (port: MessagePortMain, sender: WebContents) => {
   sender.on("preferred-size-changed", (event, size) => {
     port.postMessage({ topic: "prefered-size-changed", body: size })
   })
+
   return (message: MessageEvent) => {
-  const { data: {body: {url,preload} }, ports: [port] } = message
-    const windowId = createWindow({ url, preload})
+    const { data: { topic, body } } = message
+    switch (topic) {
+      case "set-parent": {
+        parents.set(sender.id, port)
+        return
+      }
+      case "position-changed": {
+        const { id, position } = body
+        const window = windowsById.get(id)
+        if (!window) return
+        window.setBounds({ x: position.x, y: position.y })
+        return
+      }
+    }
+    const { data: { body: { url, preload } }, ports: [port] } = message
+    const windowId = createWindow({ url, preload })
     parents.set(windowId, port)
     return windowId
   }
@@ -43,12 +59,12 @@ const handleMessage = (port: MessagePortMain, sender:WebContents)=>{
 ipcMain.on("setup-comms", ({ ports: [port], sender }) => {
   const parent = parents.get(sender.id)
   parents.delete(sender.id)
-  if(parent){
-    parent.postMessage({topic:"set-child-id", body: sender.id})
+  if (parent) {
+    parent.postMessage({ topic: "set-child-id", body: sender.id })
     port.postMessage({ topic: "set-parent" }, [parent])
   }
 
-  port.on("message", handleMessage(port,sender))
+  port.on("message", handleMessage(port, sender))
   port.start()
 })
 

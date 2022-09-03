@@ -46,12 +46,17 @@ const processMessage = (event, sender: MessagePort) => {
     case "size-changed": {
       const child = children.find(c => c.port === sender)
       if(!child) return
-      const {element} = child
+      const {element, id} = child
       element.style.width = `${body.width}px`
       element.style.height = `${body.height}px`
       console.log("setting child size", { child, body, element })
+      if(id) {
+        console.log(`sending position update to server for ${id}`)
+        const {x,y} = element.getBoundingClientRect()
+        server.postMessage({topic:"position-changed", body:{id, position: {x,y}}})
+      }
       return
-    }
+      }
     case "set-child-id": {
       console.log("setting child id", { body })
       const child = children.find(c => c.port === sender)
