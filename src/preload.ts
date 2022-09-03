@@ -35,15 +35,28 @@ const processMessage = (event, sender: MessagePort) => {
   const { data: { topic, body } } = event
   console.log("recieved message from child", { topic, body })
   switch (topic) {
-    case "echo":
+    case "echo": {
       sender.postMessage({ topic: "echo-response", body: { message: body } })
-      break
-    case "echo-response":
+      return
+    }
+    case "echo-response": {
       console.log("received echo response", { topic, body })
+      return
+    }
+    case "size-changed": {
+      const child = children.find(c => c.port === sender)
+      console.log("child size changed", { child, body })
+      if(!child) return
+      const {element} = child
+      element.style.width = `${body.width}px`
+      element.style.height = `${body.height}px`
+      console.log("setting child size", { child, body, element })
+      return
+    }
+    default: {
+      console.log(`I have no idea what "${topic}" means, and I refuse to respond to it`)
       break
-    default:
-      console.log(`I have no idea what "${topic}" means, but I refuse to respond to it`)
-      break
+    }
   }
 }
 
@@ -54,6 +67,7 @@ const addChild = (port: MessagePort) => {
 
   const element = document.createElement("div")
   element.innerText = "I am a child"
+  element.classList.add("child")
   parentElement.appendChild(element)
 
   children.push({port, element})
