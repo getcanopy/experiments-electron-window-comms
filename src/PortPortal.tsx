@@ -1,5 +1,10 @@
 import React, { ReactElement } from "react"
 
+// put state on context instead of local component state
+// create a hook with useContext to access the state
+
+// export const usePortPortal = useContext(PortPortalContext)
+
 class PortPortal extends React.Component<{ port: MessagePort, children: ReactElement | ReactElement[] }> {
   port: MessagePort
   state: { props: any }
@@ -17,7 +22,7 @@ class PortPortal extends React.Component<{ port: MessagePort, children: ReactEle
     this.props.port.removeEventListener("message", this.handleChange)
   }
   handleChange = ({ data: props }) => {
-    this.setState({ props: { ...this.state.props, ...props } })
+    this.setState({ props: { ...props } })
   }
   render = () => {
     const { children } = this.props

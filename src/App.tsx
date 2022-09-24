@@ -1,12 +1,14 @@
 import React from 'react'
 import './App.css'
-import { PortPortal } from './PortPortal'
+import { PortPortal, usePortPortal } from './PortPortalFunctional'
 
-const HappyGreeting = ({ greeting }) => {
+const HappyGreeting = () => {
+  const { greeting, emoji } = usePortPortal()
+
   return <div>
-    <span>😀</span>
+    <span>{emoji}</span>
     <span>{greeting}</span>
-    <span>😀</span>
+    <span>{emoji}</span>
   </div>
 }
 
@@ -27,12 +29,12 @@ setInterval(() => {
 
 function App() {
   return (
-    <div className="App">
-      <PortPortal port={port1}>
-        <HappyGreeting greeting='no greeting' />
+    <PortPortal port={port1}>
+      <div className="App">
+        <HappyGreeting />
         <SomethingElse bgColor='blue' onClick={() => console.log('clicked')} />
-      </PortPortal>
-    </div>
+      </div>
+    </PortPortal>
   )
 }
 
